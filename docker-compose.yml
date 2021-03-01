@@ -1,0 +1,29 @@
+version: "3.9"
+services:
+  database:
+    image: postgres:13.1-alpine
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - ./dbInitScripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rapid-dashboard-api:
+    container_name: rapid-dashboard-api
+    build:
+      context: rapid-dashboard-api
+      dockerfile: Dockerfile
+    image: rapid-dashboard-api:latest
+    ports:
+      - 8080:8080
+    restart: always
+    depends_on:
+      database:
+        condition: service_healthy
